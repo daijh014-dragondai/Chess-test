@@ -1,0 +1,14 @@
+# JJ象棋AI悬浮助手 - Python版本
+# 华为Mate60专用 / Windows/Mac/Linux通用
+
+# 核心依赖
+kivy>=2.3.1
+Pillow>=10.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+mss>=9.0.1
+requests>=2.31.0
+
+# 开发依赖（构建APK用）
+buildozer>=1.5.0
+cython>=0.29.36

@@ -1,0 +1,41 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv
+        
+    - name: Install Python dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install cython buildozer
+        
+    - name: Build APK
+      run: |
+        source venv/bin/activate
+        buildozer android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: jjchessai-apk
+        path: bin/*.apk
