@@ -1,0 +1,21 @@
+name: Test Workflow
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Test basic setup
+      run: |
+        echo "Testing basic setup..."
+        uname -a
+        whoami
+        python --version
+        java -version 2>/dev/null || echo "Java not found"
