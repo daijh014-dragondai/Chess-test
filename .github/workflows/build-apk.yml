@@ -25,6 +25,7 @@ jobs:
       run: |
         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "$JAVA_HOME/bin" >> $GITHUB_PATH
 
     - name: Create virtual environment
       run: python -m venv venv
@@ -40,28 +41,43 @@ jobs:
     - name: Check project structure
       run: |
         echo "=== Project structure ==="
-        ls -la
         ls -la src/ 2>/dev/null || echo "src not found"
         ls -la assets/ 2>/dev/null || echo "assets not found"
         ls -la .github/workflows/
         cat buildozer.spec | head -30
+
+    - name: Accept Android SDK licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        # Download and run sdkmanager to accept licenses
+        if [ ! -d "$ANDROID_HOME" ]; then
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/sdk-tools.zip
+          unzip -q /tmp/sdk-tools.zip -d /tmp/sdk-tools
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          mv /tmp/sdk-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+        fi
+        # Accept all licenses
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Build APK
       run: |
         source venv/bin/activate
         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
         export PATH=$JAVA_HOME/bin:$PATH
+        export ANDROID_HOME=/opt/android-sdk
+        mkdir -p $ANDROID_HOME
         echo "=== Starting build ==="
         echo "JAVA_HOME: $JAVA_HOME"
         echo "PATH: $PATH"
+        echo "ANDROID_HOME: $ANDROID_HOME"
         echo "Running buildozer..."
-        mkdir -p ~/.android
-touch ~/.android/repositories.cfg
-yes | buildozer android debug 2>&1
+        buildozer android debug 2>&1 | tee build_output.log
 
     - name: Check for APK
       run: |
         ls -la bin/ 2>/dev/null || echo "bin directory not found"
+        cat build_output.log 2>/dev/null || echo "No build log"
 
     - name: Upload APK
       if: success()
