@@ -67,6 +67,12 @@ jobs:
         
         echo "=== Build finished ==="
         echo "Return code: $?"
+        
+        # Check if build was successful
+        if [ $? -ne 0 ]; then
+          echo "ERROR: Buildozer failed"
+          exit 1
+        fi
 
     - name: Check build output
       run: |
