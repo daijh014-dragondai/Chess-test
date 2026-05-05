@@ -75,9 +75,22 @@ jobs:
         echo "=== Build log last 200 lines ==="
         tail -200 build_output.log 2>/dev/null || echo "No build log"
 
+    - name: Check APK existence
+      id: check_apk
+      run: |
+        if ls bin/*.apk 1>/dev/null 2>&1; then
+          echo "APK_FILE_EXISTS=true" >> $GITHUB_OUTPUT
+          echo "APK_PATH=$(ls bin/*.apk | head -n 1)" >> $GITHUB_OUTPUT
+          ls -la bin/*.apk
+        else
+          echo "APK_FILE_EXISTS=false" >> $GITHUB_OUTPUT
+          echo "=== ERROR: No APK file found ==="
+          find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
+        fi
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: jjchessai-apk
         path: bin/*.apk
-      if: ${{ hashFiles('bin/*.apk') != '' }}
+      if: ${{ steps.check_apk.outputs.APK_FILE_EXISTS == 'true' }}
