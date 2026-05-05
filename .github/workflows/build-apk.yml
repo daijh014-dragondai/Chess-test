@@ -55,7 +55,7 @@ jobs:
         echo "JAVA_HOME: $JAVA_HOME"
         echo "PATH: $PATH"
         echo "Running buildozer..."
-        buildozer android debug 2>&1
+        yes | buildozer android debug 2>&1
 
     - name: Check for APK
       run: |
