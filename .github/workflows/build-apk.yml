@@ -19,45 +19,43 @@ jobs:
 
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv openjdk-17-jdk
+        sudo apt-get update && sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv openjdk-17-jdk
 
-    - name: Set JAVA_HOME and verify
+    - name: Set JAVA_HOME
       run: |
         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
         echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-        java -version
-        echo "Java home set successfully"
 
-    - name: Install Python dependencies
+    - name: Create virtual environment
+      run: python -m venv venv
+
+    - name: Install Python packages
       run: |
-        python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
-        pip install cython numpy Pillow
+        pip install cython numpy Pillow requests opencv-python-headless
         pip install buildozer
-        pip list
+        pip list | grep -i buildozer
 
-    - name: Debug environment
+    - name: Check project structure
       run: |
-        source venv/bin/activate
-        which python
-        which pip
-        python --version
-        pip --version
-        echo "JAVA_HOME: $JAVA_HOME"
-
-    - name: Initialize buildozer
-      run: |
-        source venv/bin/activate
-        buildozer init
-        cat buildozer.spec
+        echo "=== Project structure ==="
+        ls -la
+        ls -la src/ 2>/dev/null || echo "src not found"
+        ls -la assets/ 2>/dev/null || echo "assets not found"
+        ls -la .github/workflows/
+        cat buildozer.spec | head -30
 
     - name: Build APK
       run: |
         source venv/bin/activate
         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-        buildozer android debug 2>&1 | tail -200
+        export PATH=$JAVA_HOME/bin:$PATH
+        echo "=== Starting build ==="
+        echo "JAVA_HOME: $JAVA_HOME"
+        echo "PATH: $PATH"
+        echo "Running buildozer..."
+        buildozer android debug 2>&1
 
     - name: Check for APK
       run: |
