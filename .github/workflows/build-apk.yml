@@ -2,40 +2,52 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv
-        
+        sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv openjdk-17-jdk
+
+    - name: Set JAVA_HOME
+      run: |
+        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+
     - name: Install Python dependencies
       run: |
         python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
-        pip install cython buildozer
-        
+        pip install cython buildozer numpy Pillow
+
     - name: Build APK
       run: |
         source venv/bin/activate
-        buildozer android debug
-        
+        buildozer android debug || (cat .buildozer/logs/buildozer.log; exit 1)
+
     - name: Upload APK
+      if: success()
       uses: actions/upload-artifact@v3
       with:
         name: jjchessai-apk
         path: bin/*.apk
+
+    - name: Upload Build Logs
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs
+        path: .buildozer/logs/
