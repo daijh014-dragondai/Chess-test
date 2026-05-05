@@ -7,7 +7,6 @@ version = 0.1.0
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 0.1.0
 
 requirements = python3,kivy==2.1.0,numpy,Pillow,requests
 android.permissions = INTERNET,ACCESS_NETWORK_STATE
@@ -25,8 +24,8 @@ android.api = 33
 android.minapi = 24
 android.archs = arm64-v8a
 
-p4a.source_dir = 
-p4a.local_recipes = 
+p4a.source_dir =
+p4a.local_recipes =
 p4a.bootstrap = sdl2
-p4a.ndk_dir = 
+p4a.ndk_dir =
 p4a.sdk_dir =
