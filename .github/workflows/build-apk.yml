@@ -22,22 +22,46 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv openjdk-17-jdk
 
-    - name: Set JAVA_HOME
+    - name: Set JAVA_HOME and verify
       run: |
-        echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         java -version
+        echo "Java home set successfully"
 
     - name: Install Python dependencies
       run: |
         python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
-        pip install cython buildozer numpy Pillow
+        pip install cython numpy Pillow
+        pip install buildozer
+        pip list
+
+    - name: Debug environment
+      run: |
+        source venv/bin/activate
+        which python
+        which pip
+        python --version
+        pip --version
+        echo "JAVA_HOME: $JAVA_HOME"
+
+    - name: Initialize buildozer
+      run: |
+        source venv/bin/activate
+        buildozer init
+        cat buildozer.spec
 
     - name: Build APK
       run: |
         source venv/bin/activate
-        buildozer android debug || (cat .buildozer/logs/buildozer.log; exit 1)
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        buildozer android debug 2>&1 | tail -200
+
+    - name: Check for APK
+      run: |
+        ls -la bin/ 2>/dev/null || echo "bin directory not found"
 
     - name: Upload APK
       if: success()
@@ -45,10 +69,3 @@ jobs:
       with:
         name: jjchessai-apk
         path: bin/*.apk
-
-    - name: Upload Build Logs
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-logs
-        path: .buildozer/logs/
