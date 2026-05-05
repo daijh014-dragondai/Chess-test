@@ -1,0 +1,57 @@
+name: Debug Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Step 1 - Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Step 2 - Install system dependencies
+      run: |
+        echo "Installing system dependencies..."
+        sudo apt-get update && sudo apt-get install -y git wget unzip build-essential cmake swig python3-pip python3-venv openjdk-17-jdk
+        echo "System dependencies installed"
+
+    - name: Step 3 - Verify Java installation
+      run: |
+        echo "Checking Java..."
+        which java
+        java -version
+        ls -la /usr/lib/jvm/
+
+    - name: Step 4 - Set JAVA_HOME
+      run: |
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "Set JAVA_HOME to $JAVA_HOME"
+
+    - name: Step 5 - Create virtual environment
+      run: |
+        echo "Creating virtual environment..."
+        python -m venv venv
+        echo "Virtual environment created"
+
+    - name: Step 6 - Install Python packages
+      run: |
+        echo "Activating venv and installing packages..."
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install cython numpy Pillow
+        pip install buildozer
+        echo "Packages installed"
+
+    - name: Step 7 - Verify buildozer installation
+      run: |
+        source venv/bin/activate
+        echo "Checking buildozer..."
+        which buildozer
+        buildozer --version
