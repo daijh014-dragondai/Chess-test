@@ -1,0 +1,56 @@
+name: Debug APK Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install all system dependencies
+      run: |
+        sudo apt-get update && sudo apt-get install -y \
+          git wget unzip build-essential cmake swig python3-pip python3-venv \
+          openjdk-17-jdk ant libncurses5:i386 libstdc++6:i386 zlib1g:i386 \
+          libc6:i386 libbz2-1.0:i386 libpng16-16:i386 libssl1.1:i386 \
+          libjpeg-turbo8:i386 libopenal1:i386 libsqlite3-0:i386
+
+    - name: Check Java
+      run: |
+        java -version
+        ls -la /usr/lib/jvm/
+
+    - name: Create and activate venv
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install cython numpy Pillow requests opencv-python-headless
+        pip install buildozer
+
+    - name: Run buildozer with verbose output
+      run: |
+        source venv/bin/activate
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        export PATH=$JAVA_HOME/bin:$PATH
+        buildozer android debug -v 2>&1 | tee build_output.txt
+
+    - name: Show last 200 lines of output
+      if: failure()
+      run: |
+        tail -200 build_output.txt
+
+    - name: Upload build log
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-log
+        path: build_output.txt
