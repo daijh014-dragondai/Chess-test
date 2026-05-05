@@ -35,8 +35,27 @@ Config.set('graphics', 'width', '320')
 Config.set('graphics', 'height', '500')
 Config.set('graphics', 'resizable', False)
 
-# Set default font to support Chinese
-Config.set('kivy', 'default_font', ['SimHei', 'C:\\Windows\\Fonts\\simhei.ttf', 'C:\\Windows\\Fonts\\simsun.ttc'])
+# Set default font to support Chinese (cross-platform)
+import platform
+font_paths = []
+if platform.system() == 'Windows':
+    font_paths = ['C:\\Windows\\Fonts\\simhei.ttf', 'C:\\Windows\\Fonts\\simsun.ttc']
+else:
+    # For Linux/Android, try system fonts or use default
+    font_paths = ['/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc', '/usr/share/fonts/truetype/freefont/FreeSans.ttf']
+
+# Find first available font
+available_font = None
+for font_path in font_paths:
+    if os.path.exists(font_path):
+        available_font = font_path
+        break
+
+if available_font:
+    Config.set('kivy', 'default_font', ['CustomFont', available_font])
+else:
+    # Fallback to default Kivy font
+    pass
 
 import sys
 import os
