@@ -25,6 +25,7 @@ jobs:
     - name: Set JAVA_HOME
       run: |
         echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+        java -version
 
     - name: Install Python dependencies
       run: |
